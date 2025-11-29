@@ -1,0 +1,63 @@
+@import './base.css';
+
+#app {
+  font-family: 'Microsoft YaHei', 'Heiti SC', 'Microsoft Sans Serif', Arial, sans-serif;
+  /* 
+   * -webkit-font-smoothing: antialiased;
+   * 作用：控制WebKit浏览器（Safari、Chrome等）中的字体平滑渲染
+   * 说明：antialiased值使字体边缘更加平滑，特别在Mac系统上效果明显
+   * 优点：提高小字体的可读性，使字体看起来更加清晰和锐利
+   */
+  -webkit-font-smoothing: antialiased;
+  
+  /* 
+   * -moz-osx-font-smoothing: grayscale;
+   * 作用：控制Firefox浏览器在macOS系统上的字体渲染方式
+   * 说明：grayscale值使字体渲染使用灰度抗锯齿，类似于其他浏览器的antialiased效果
+   * 优点：确保跨浏览器字体渲染的一致性，特别是在macOS上
+   */
+  -moz-osx-font-smoothing: grayscale;
+  
+  /* color: #2c3e50; */
+  font-weight: normal;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* #app {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  font-weight: normal;
+} */
+
+/* a,
+.green {
+  text-decoration: none;
+  color: hsla(160, 100%, 37%, 1);
+  transition: 0.4s;
+  padding: 3px;
+}
+
+@media (hover: hover) {
+  a:hover {
+    background-color: hsla(160, 100%, 37%, 0.2);
+  }
+}
+
+@media (min-width: 1024px) {
+  body {
+    display: flex;
+    place-items: center;
+  }
+
+  #app {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    padding: 0 2rem;
+  }
+} */
