@@ -1,36 +1,38 @@
 // composables/useMindMap.js
-import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
-import MindMap from 'simple-mind-map'
-import emitter from '@/utils/eventBus'
-import appStore from '@/stores'
-import { getData, getConfig, storeData } from '@/api'
-import exampleData from 'simple-mind-map/example/exampleData'
-import icon from '@/config/icon'
-import handleClipboardText from '@/utils/handleClipboardText'
+import { getConfig, getData, storeData } from '@/api'
 import imgLoadFailSvg from '@/assets/img/imgLoadFailed.svg'
+import icon from '@/config/icon'
+import appStore from '@/stores'
+import emitter from '@/utils/eventBus'
+import handleClipboardText from '@/utils/handleClipboardText'
+import MindMap from 'simple-mind-map'
+import exampleData from 'simple-mind-map/example/exampleData'
+import { ref } from 'vue'
+import { DialogPlugin, MessagePlugin } from 'tdesign-vue-next'
 
 // 注册插件
-import MiniMap from 'simple-mind-map/src/plugins/MiniMap.js'
-import Watermark from 'simple-mind-map/src/plugins/Watermark.js'
-import KeyboardNavigation from 'simple-mind-map/src/plugins/KeyboardNavigation.js'
+import Themes from 'simple-mind-map-plugin-themes'
+import AssociativeLine from 'simple-mind-map/src/plugins/AssociativeLine.js'
+import Demonstrate from 'simple-mind-map/src/plugins/Demonstrate.js'
+import Drag from 'simple-mind-map/src/plugins/Drag.js'
+import Export from 'simple-mind-map/src/plugins/Export.js'
 import ExportPDF from 'simple-mind-map/src/plugins/ExportPDF.js'
 import ExportXMind from 'simple-mind-map/src/plugins/ExportXMind.js'
-import Export from 'simple-mind-map/src/plugins/Export.js'
-import Drag from 'simple-mind-map/src/plugins/Drag.js'
-import Select from 'simple-mind-map/src/plugins/Select.js'
-import AssociativeLine from 'simple-mind-map/src/plugins/AssociativeLine.js'
-import TouchEvent from 'simple-mind-map/src/plugins/TouchEvent.js'
-import NodeImgAdjust from 'simple-mind-map/src/plugins/NodeImgAdjust.js'
-import SearchPlugin from 'simple-mind-map/src/plugins/Search.js'
-import Painter from 'simple-mind-map/src/plugins/Painter.js'
 import Formula from 'simple-mind-map/src/plugins/Formula.js'
-import RainbowLines from 'simple-mind-map/src/plugins/RainbowLines.js'
-import Demonstrate from 'simple-mind-map/src/plugins/Demonstrate.js'
-import OuterFrame from 'simple-mind-map/src/plugins/OuterFrame.js'
+import KeyboardNavigation from 'simple-mind-map/src/plugins/KeyboardNavigation.js'
 import MindMapLayoutPro from 'simple-mind-map/src/plugins/MindMapLayoutPro.js'
+import MiniMap from 'simple-mind-map/src/plugins/MiniMap.js'
 import NodeBase64ImageStorage from 'simple-mind-map/src/plugins/NodeBase64ImageStorage.js'
-import Themes from 'simple-mind-map-plugin-themes'
+import NodeImgAdjust from 'simple-mind-map/src/plugins/NodeImgAdjust.js'
+import OuterFrame from 'simple-mind-map/src/plugins/OuterFrame.js'
+import Painter from 'simple-mind-map/src/plugins/Painter.js'
+import RainbowLines from 'simple-mind-map/src/plugins/RainbowLines.js'
+import SearchPlugin from 'simple-mind-map/src/plugins/Search.js'
+import Select from 'simple-mind-map/src/plugins/Select.js'
+import TouchEvent from 'simple-mind-map/src/plugins/TouchEvent.js'
+import Watermark from 'simple-mind-map/src/plugins/Watermark.js'
 
+// 需要在实例化MindMap前注册插件
 MindMap.usePlugin(MiniMap)
   .usePlugin(Watermark)
   .usePlugin(Drag)
@@ -54,24 +56,26 @@ MindMap.usePlugin(MiniMap)
 // 注册主题
 Themes.init(MindMap)
 
-export default function useMindMap(containerRef) {
+/**
+ * 主要用于思维导图的加载、初始化、数据存储等功能
+ * @param {Ref<object>} mindMapRef
+ * @param {Ref<boolean>} openNodeRichText
+ * @returns
+ */
+export default function useMindMap(mindMapRef, openNodeRichText) {
   const mindMap = ref(null)
   const mindMapData = ref(null)
   const mindMapConfig = ref({})
   const storeConfigTimer = ref(null)
 
-  // 获取数据
-  const loadData = () => {
-    mindMapData.value = getData()
-    mindMapConfig.value = getConfig() || {}
-  }
-
-  // 初始化思维导图
+  /**
+   * 初始化思维导图。⚠️这里只做思维导图相关的初始化，其他初始化在index.vue的init函数中
+   * @param {boolean} hasFileURL - 是否存在文件URL
+   */
   const initMindMap = (hasFileURL) => {
     let { root, layout, theme, view } = mindMapData.value
     const config = mindMapConfig.value
-
-    // 如果url中存在要打开的文件，使用默认数据
+    // 如果url中存在要打开的文件，那么思维导图数据、主题、布局都使用默认的
     if (hasFileURL) {
       root = {
         data: {
@@ -85,7 +89,7 @@ export default function useMindMap(containerRef) {
     }
 
     mindMap.value = new MindMap({
-      el: containerRef.value,
+      el: mindMapRef.value,
       data: root,
       fit: false,
       layout: layout,
@@ -98,7 +102,7 @@ export default function useMindMap(containerRef) {
         show: (content, left, top, node) => {
           emitter.emit('showNoteContent', content, left, top, node)
         },
-        hide: () => {},
+        hide: () => emitter.emit('hideNoteContent'),
       },
       openRealtimeRenderOnNodeTextEdit: true,
       enableAutoEnterTextEditWhenKeydown: true,
@@ -112,17 +116,38 @@ export default function useMindMap(containerRef) {
       customHandleClipboardText: handleClipboardText,
       defaultNodeImage: imgLoadFailSvg,
       initRootNodePosition: ['center', 'center'],
+      // 粘贴文本的方式创建新节点时，控制是否按换行自动分割节点，即如果存在换行，那么会根据换行创建多个节点，否则只会创建一个节点
       handleIsSplitByWrapOnPasteCreateNewNode: () => {
-        return new Promise((resolve) => {
-          // 这里需要处理确认对话框
-          resolve(true)
+        return new Promise((resolve, reject) => {
+          const confirmDia = DialogPlugin.confirm({
+            header: t('edit.tip'),
+            body: t('edit.splitByWrap'),
+            confirmBtn: t('edit.yes'),
+            cancelBtn: t('edit.no'),
+            theme: 'warning',
+            onConfirm: ({ e }) => {
+              resolve(true)
+              confirmDia.destroy()
+            },
+            onCancel: ({ e }) => {
+              reject(false)
+              confirmDia.destroy()
+            },
+          })
         })
       },
       errorHandler: (code, err) => {
         console.error(err)
+        switch (code) {
+          case 'export_error':
+            MessagePlugin.error(t('edit.exportError'))
+            break
+          default:
+            break
+        }
       },
       addContentToFooter: () => {
-        const text = appStore.extraTextOnExport?.trim()
+        const text = appStore.extraTextOnExport.trim()
         if (!text) return null
         const el = document.createElement('div')
         el.className = 'footer'
@@ -147,10 +172,24 @@ export default function useMindMap(containerRef) {
       expandBtnNumHandler: (num) => {
         return num >= 100 ? '…' : num
       },
+      // 拦截节点图片的删除，点击节点图片上的删除按钮删除图片前会调用该函数
       beforeDeleteNodeImg: (node) => {
         return new Promise((resolve) => {
-          // 处理删除图片确认
-          resolve(false)
+          const confirmDia = DialogPlugin.confirm({
+            header: t('edit.tip'),
+            body: t('edit.deleteNodeImgTip'),
+            confirmBtn: t('edit.yes'),
+            cancelBtn: t('edit.no'),
+            theme: 'warning',
+            onConfirm: ({ e }) => {
+              resolve(false)
+              confirmDia.destroy()
+            },
+            onCancel: ({ e }) => {
+              resolve(true)
+              confirmDia.destroy()
+            },
+          })
         })
       },
     })
@@ -160,11 +199,12 @@ export default function useMindMap(containerRef) {
       manualSave()
     })
 
-    // 转发事件
+    // mindMap实例事件列表
+    // https://wanglin2.github.io/mind-map-docs/api/constructor/constructor-methods.html#on-event-fn
     const events = [
       'node_active',
-      'data_change',
-      'view_data_change',
+      'data_change', // 渲染树数据变化，可以监听该方法获取最新数据
+      'view_data_change', // 视图变化数据，比如拖动或缩放时会触发
       'back_forward',
       'node_contextmenu',
       'node_click',
@@ -189,25 +229,26 @@ export default function useMindMap(containerRef) {
       'node_note_dblclick',
       'node_mousedown',
     ]
-
     events.forEach((event) => {
+      // 监听事件
       mindMap.value.on(event, (...args) => {
         emitter.emit(event, ...args)
       })
     })
-
-    // 绑定保存事件
     bindSaveEvent()
-
     return mindMap.value
   }
 
-  // 绑定保存事件
+  /** 加载数据和配置 */
+  const loadDataConfig = () => {
+    mindMapData.value = getData()
+    mindMapConfig.value = getConfig() || {}
+  }
+  /** 监听数据变化，存储数据 */
   const bindSaveEvent = () => {
     emitter.on('data_change', (data) => {
       storeData({ root: data })
     })
-
     emitter.on('view_data_change', (data) => {
       clearTimeout(storeConfigTimer.value)
       storeConfigTimer.value = setTimeout(() => {
@@ -218,75 +259,27 @@ export default function useMindMap(containerRef) {
     })
   }
 
-  // 手动保存
+  /** 手动保存数据 */
   const manualSave = () => {
-    if (mindMap.value) {
-      storeData(mindMap.value.getData(true))
-    }
+    storeData(mindMap.value.getData(true))
   }
 
-  // 设置数据
-  const setData = (data) => {
-    if (!mindMap.value) return
-
-    let rootNodeData = null
-    if (data.root) {
-      mindMap.value.setFullData(data)
-      rootNodeData = data.root
-    } else {
-      mindMap.value.setData(data)
-      rootNodeData = data
-    }
-    mindMap.value.view.reset()
-    manualSave()
-  }
-
-  // 执行命令
-  const execCommand = (...args) => {
-    if (mindMap.value) {
-      mindMap.value.execCommand(...args)
-    }
-  }
-
-  // 导出
-  const exportMap = async (...args) => {
-    if (mindMap.value) {
-      try {
-        // showLoading()
-        await mindMap.value.export(...args)
-        // hideLoading()
-      } catch (error) {
-        console.log(error)
-        // hideLoading()
-      }
-    }
-  }
-
-  // 重新渲染
+  /** 整体重新渲染，会清空画布，节点也会重新创建，性能不好，慎重使用 */
   const reRender = () => {
-    if (mindMap.value) {
-      mindMap.value.reRender()
-    }
-  }
-
-  // 销毁
-  const destroy = () => {
-    if (mindMap.value) {
-      mindMap.value.destroy()
-    }
+    mindMap.value.reRender()
   }
 
   return {
     mindMap,
     mindMapData,
     mindMapConfig,
-    loadData,
+    loadDataConfig,
     initMindMap,
     manualSave,
-    setData,
-    execCommand,
-    exportMap,
+    // execCommand,
+    // onPaddingChange,
+    // exportMap,
+    // setData,
     reRender,
-    destroy,
   }
 }

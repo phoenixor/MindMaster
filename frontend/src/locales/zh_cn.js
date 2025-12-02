@@ -238,6 +238,7 @@ export default {
     fullscreen: '全屏',
   },
   scale: {
+    title: '缩放地图',
     zoomIn: '放大',
     zoomOut: '缩小',
   },

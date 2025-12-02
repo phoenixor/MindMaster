@@ -1,5 +1,5 @@
 <template>
-  <div class="toolbarContainer" :class="{ isDark: isDark }">
+  <div class="toolbarContainer">
     <div class="toolbar" ref="toolbarRef">
       <!-- 节点操作 -->
       <div class="toolbarBlock">

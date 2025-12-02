@@ -1,11 +1,11 @@
 import { createI18n } from 'vue-i18n'
 import zhCN from './zh_cn'
-import enUS from './en_us'
+// import enUS from './en_us'
 
 // 定义语言映射
 const messages = {
   'zh-CN': zhCN,
-  'en-US': enUS
+  // 'en-US': enUS
 }
 
 // 默认语言（中文）

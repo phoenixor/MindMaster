@@ -10,9 +10,13 @@
 <script setup>
 import Toolbar from './components/Toolbar/index.vue'
 // import Editor from './components/Editor/index.vue'
+import appStore from '@/stores'
+import { computed } from 'vue'
 import Editor from './components/EditorTest/index.vue'
 
 const show = true
+const isZenMode = computed(() => appStore.localConfig.isZenMode)
+const activeSidebar = computed(() => appStore.activeSidebar)
 // export default {
 //   components: {
 //     Toolbar,

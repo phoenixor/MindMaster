@@ -4,56 +4,47 @@ import appStore from '@/stores'
 import RichText from 'simple-mind-map/src/plugins/RichText.js'
 import ScrollbarPlugin from 'simple-mind-map/src/plugins/Scrollbar.js'
 
-export default function usePlugins(mindMapRef) {
+/**
+ * 主要用于动态添加或移除插件
+ * @param {Ref<object>} mindMap
+ * @returns
+ */
+export default function usePlugins(mindMap) {
   // 加载富文本插件
   const addRichTextPlugin = () => {
-    if (mindMapRef.value) {
-      mindMapRef.value.addPlugin(RichText)
+    if (mindMap.value) {
+      mindMap.value.addPlugin(RichText)
     }
   }
 
   // 移除富文本插件
   const removeRichTextPlugin = () => {
-    if (mindMapRef.value) {
-      mindMapRef.value.removePlugin(RichText)
+    if (mindMap.value) {
+      mindMap.value.removePlugin(RichText)
     }
   }
 
   // 加载滚动条插件
   const addScrollbarPlugin = () => {
-    if (mindMapRef.value) {
-      mindMapRef.value.addPlugin(ScrollbarPlugin)
+    if (mindMap.value) {
+      mindMap.value.addPlugin(ScrollbarPlugin)
     }
   }
 
   // 移除滚动条插件
   const removeScrollbarPlugin = () => {
-    if (mindMapRef.value) {
-      mindMapRef.value.removePlugin(ScrollbarPlugin)
+    if (mindMap.value) {
+      mindMap.value.removePlugin(ScrollbarPlugin)
     }
   }
 
-  // 监听状态变化
   watch(
     () => appStore.localConfig.openNodeRichText,
-    (newVal) => {
-      if (newVal) {
-        addRichTextPlugin()
-      } else {
-        removeRichTextPlugin()
-      }
-    },
+    (newVal) => (newVal ? addRichTextPlugin() : removeRichTextPlugin()),
   )
-
   watch(
     () => appStore.localConfig.isShowScrollbar,
-    (newVal) => {
-      if (newVal) {
-        addScrollbarPlugin()
-      } else {
-        removeScrollbarPlugin()
-      }
-    },
+    (newVal) => (newVal ? addScrollbarPlugin() : removeScrollbarPlugin()),
   )
 
   return {

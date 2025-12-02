@@ -23,6 +23,7 @@ const useAppStore = defineStore('app', {
       isShowScrollbar: false,
       // isDark: false, // 是否是暗黑模式
       enableAi: true,
+      enableDragImport: true, //TODO 官方store中没有这个配置项但是引用了，不知道是不是遗漏
     },
 
     /**

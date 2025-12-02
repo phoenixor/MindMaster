@@ -22,27 +22,51 @@
     <div class="item">
       <MouseAction :mindMap="mindMap" />
     </div>
+    <!-- 小地图 -->
+    <div class="item">
+      <IconBtn
+        name="toggleMiniMap"
+        :content="
+          openMiniMap ? $t('navigatorToolbar.closeMiniMap') : $t('navigatorToolbar.openMiniMap')
+        "
+        :icon="openMiniMap ? CompassFilledIcon : CompassIcon"
+        :handleClick="handleIconClick"
+      />
+    </div>
+    <!-- 只读/编辑模式切换 -->
+    <div class="item">
+      <IconBtn
+        name="readonlyChange"
+        :content="
+          appStore.isReadonly ? $t('navigatorToolbar.edit') : $t('navigatorToolbar.readonly')
+        "
+        :icon="appStore.isReadonly ? BrowseIcon : EditIcon"
+        :handleClick="handleIconClick"
+      />
+    </div>
+    <!-- 全屏查看 -->
+    <div class="item">
+      <IconBtn
+        name="fullscreenShow"
+        :content="$t('fullscreen.fullscreenShow')"
+        :icon="Fullscreen2Icon"
+        :handleClick="handleIconClick"
+      />
+    </div>
+    <!-- 全屏编辑 -->
+    <div class="item">
+      <IconBtn
+        name="fullscreenEdit"
+        :content="$t('fullscreen.fullscreenEdit')"
+        :icon="Fullscreen1Icon"
+        :handleClick="handleIconClick"
+      />
+    </div>
+    <!-- 缩放 -->
+    <div class="item">
+      <Scale :mindMap="mindMap" />
+    </div>
     <!-- 
-    <div class="item">
-      <t-tooltip :content="openMiniMap ? '关闭小地图' : '打开小地图'" placement="top">
-        <div class="btn iconfont icondaohang1" @click="toggleMiniMap"></div>
-      </t-tooltip>
-    </div>
-    <div class="item">
-      <t-tooltip :content="isReadonly ? '编辑' : '只读'" placement="top">
-        <div
-          class="btn iconfont"
-          :class="[isReadonly ? 'iconyanjing' : 'iconbianji1']"
-          @click="readonlyChange"
-        ></div>
-      </t-tooltip>
-    </div>
-    <div class="item">
-      <Fullscreen :isDark="isDark" :mindMap="mindMap"></Fullscreen>
-    </div>
-    <div class="item">
-      <Scale :isDark="isDark" :mindMap="mindMap"></Scale>
-    </div>
     <div class="item">
       <div
         class="btn iconfont"
@@ -85,15 +109,25 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import appStore from '@/stores'
 import Scale from './Scale.vue'
-import Fullscreen from './Fullscreen.vue'
 import MouseAction from './MouseAction.vue'
 import Demonstrate from './Demonstrate.vue'
 import pkg from 'simple-mind-map/package.json'
-import { FocusIcon, SearchIcon } from 'tdesign-icons-vue-next'
+import {
+  FocusIcon,
+  SearchIcon,
+  CompassIcon,
+  CompassFilledIcon,
+  EditIcon,
+  BrowseIcon,
+  Fullscreen2Icon,
+  Fullscreen1Icon,
+} from 'tdesign-icons-vue-next'
 import IconBtn from './IconBtn.vue'
+import emitter from '@/utils/eventBus'
+import { fullscreenEvent, fullScreen } from '@/utils'
 
 const { mindMap } = defineProps({
   mindMap: {
@@ -106,25 +140,27 @@ const { mindMap } = defineProps({
 const version = ref(pkg.version)
 const openMiniMap = ref(false)
 
-const isReadonly = computed(() => appStore.isReadonly)
-
 const iconBtnActions = {
   backToRoot: () => {
     mindMap.renderer.setRootNodeCenter()
   },
-  search: () => {
-    // 执行搜索的逻辑
-    mindMap.bus.$emit('show_search')
+  showSearch: () => {
+    emitter.emit('show_search')
   },
-
-  toggleDark: () => {
-    // 执行切换主题的逻辑
-    appStore.setLocalConfig({
-      isDark: !isDark.value,
-    })
+  toggleMiniMap() {
+    openMiniMap.value = !openMiniMap.value
+    emitter.emit('toggle_mini_map', openMiniMap.value)
   },
-
-  // 更多按钮的处理函数...
+  readonlyChange() {
+    appStore.setIsReadonly(!appStore.isReadonly)
+    mindMap.setMode(appStore.isReadonly ? 'readonly' : 'edit')
+  },
+  fullscreenShow() {
+    fullScreen(mindMap.el)
+  },
+  fullscreenEdit() {
+    fullScreen(document.body)
+  },
 }
 
 const handleIconClick = (name) => {
@@ -140,11 +176,6 @@ const handleIconClick = (name) => {
 const readonlyChange = () => {
   appStore.setIsReadonly(!isReadonly.value)
   mindMap.setMode(isReadonly.value ? 'readonly' : 'edit')
-}
-
-const toggleMiniMap = () => {
-  openMiniMap.value = !openMiniMap.value
-  mindMap.bus.$emit('toggle_mini_map', openMiniMap.value)
 }
 
 const showSearch = () => {
@@ -198,9 +229,14 @@ const handleCommand = (value) => {
   }
 }
 
-const backToRoot = () => {
-  mindMap.renderer.setRootNodeCenter()
-}
+onMounted(() => {
+  // 组件挂载时添加全屏事件监听
+  document[fullscreenEvent] = () => {
+    setTimeout(() => {
+      props.mindMap.resize()
+    }, 1000)
+  }
+})
 </script>
 
 <style lang="less" scoped>
@@ -219,16 +255,13 @@ const backToRoot = () => {
   .item {
     cursor: pointer;
     margin-right: 20px;
-
     &:last-of-type {
       margin-right: 0;
     }
-
     a {
       color: #303133;
       text-decoration: none;
     }
-
     .btn {
       cursor: pointer;
       font-size: 18px;

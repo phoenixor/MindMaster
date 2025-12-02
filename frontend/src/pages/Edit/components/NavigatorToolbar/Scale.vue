@@ -1,84 +1,85 @@
 <template>
-  <div class="scaleContainer" :class="{ isDark: isDark }">
-    <t-tooltip content="缩小" placement="top">
-      <div class="btn el-icon-minus" @click="narrow"></div>
-    </t-tooltip>
-    <div class="scaleInfo">
-      <input
-        ref="inputRef"
-        type="text"
-        v-model="scaleNum"
-        @input="onScaleNumInput"
-        @change="onScaleNumChange"
-        @focus="onScaleNumInputFocus"
-        @keydown.stop
-        @keyup.stop
-      />%
-    </div>
-    <t-tooltip content="放大" placement="top">
-      <div class="btn el-icon-plus" @click="enlarge"></div>
+  <div class="scaleContainer">
+    <t-tooltip :content="$t('scale.title')">
+      <t-input-number
+        v-model="currValue"
+        :max="1000"
+        :min="20"
+        :format="(v) => `${v} %`"
+        size="small"
+        :allowInputOverLimit="false"
+        :step="20"
+        auto-width
+        @change="handleChange"
+        @enter="handleEnter"
+        @focus="handleFocus"
+      />
     </t-tooltip>
   </div>
 </template>
 
 <script setup>
-import { ref, watch, onBeforeUnmount } from 'vue'
+import { ref, computed, onBeforeUnmount } from 'vue'
 
-// 定义props
-const props = defineProps({
+const { mindMap } = defineProps({
   mindMap: {
     type: Object,
-    required: true
+    required: true,
   },
-  isDark: {
-    type: Boolean,
-    default: false
-  }
 })
 
-// 响应式数据
-const scaleNum = ref(100)
-const cacheScaleNum = ref(0)
-const inputRef = ref(null)
+const currValue = ref(100)
+const prevValue = ref(100) // 上一次的值
 
-// 监听mindMap变化
-watch(() => props.mindMap, (val, oldVal) => {
-  if (val && !oldVal) {
-    props.mindMap.on('scale', onScale)
-    props.mindMap.on('draw_click', onDrawClick)
-    scaleNum.value = toPer(props.mindMap.view.scale)
+/** 值变化事件 */
+const handleChange = (value, { type }) => {
+  if (type === 'add' || type === 'reduce') {
+    mindMap.view.setScale(value / 100)
+    prevValue.value = value
   }
-})
+  // if (type === 'add') {
+  //   enlarge()
+  //   prevValue.value = value
+  // } else if (type === 'reduce') {
+  //   narrow()
+  //   prevValue.value = value
+  // }
+  // else if (context.type === 'input') {
+  //   console.log('用户手动输入')
+  // } else if (context.type === 'blur') {
+  //   console.log('输入框失焦，值可能被修正')
+  // } else if (context.type === 'enter') {
+  //   console.log('用户按下了回车键')
+  // } else if (context.type === 'clear') {
+  //   console.log('用户点击了清除按钮')
+  // } else if (context.type === 'props') {
+  //   console.log('属性值被修改')
+  // }
+}
 
-// 组件卸载前移除事件监听
-onBeforeUnmount(() => {
-  if (props.mindMap) {
-    props.mindMap.off('scale', onScale)
-    props.mindMap.off('draw_click', onDrawClick)
+const handleEnter = (value) => {
+  console.log('用户按下了回车键', prevValue.value, value)
+  if (value > prevValue.value) {
+    enlarge()
+  } else if (value < prevValue.value) {
+    narrow()
   }
-})
+  prevValue.value = value
+}
 
-// 方法
+const handleFocus = (value) => {
+  // 输入框focus时记录当前值
+  prevValue.value = value.replace(/ %$/, '')
+}
 const toPer = (scale) => {
   return (scale * 100).toFixed(0)
 }
-
 const narrow = () => {
-  props.mindMap.view.narrow()
+  mindMap.view.narrow()
 }
-
 const enlarge = () => {
-  props.mindMap.view.enlarge()
+  mindMap.view.enlarge()
 }
-
-const onScaleNumInputFocus = () => {
-  cacheScaleNum.value = scaleNum.value
-}
-
-const onScaleNumInput = () => {
-  scaleNum.value = scaleNum.value.replace(/[^0-9]+/g, '')
-}
-
 const onScaleNumChange = () => {
   const num = Number(scaleNum.value)
   if (Number.isNaN(num) || num <= 0) {
@@ -89,39 +90,15 @@ const onScaleNumChange = () => {
     props.mindMap.view.setScale(scaleNum.value / 100, cx, cy)
   }
 }
-
-const onScale = (scale) => {
-  scaleNum.value = toPer(scale)
-}
-
-const onDrawClick = () => {
-  if (inputRef.value) inputRef.value.blur()
-}
 </script>
 
 <style lang="less" scoped>
 .scaleContainer {
   display: flex;
   align-items: center;
-
-  &.isDark {
-    .btn {
-      color: hsla(0, 0%, 100%, 0.6);
-    }
-
-    .scaleInfo {
-      color: hsla(0, 0%, 100%, 0.6);
-
-      input {
-        color: hsla(0, 0%, 100%, 0.6);
-      }
-    }
-  }
-
   .btn {
     cursor: pointer;
   }
-
   .scaleInfo {
     margin: 0 20px;
     display: flex;
