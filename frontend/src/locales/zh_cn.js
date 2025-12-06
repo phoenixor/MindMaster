@@ -167,7 +167,7 @@ export default {
     useMultiPageExport: '是否多页导出',
     defaultFileName: '思维导图',
     addFooterText: '底部添加文字',
-    addFooterTextPlaceholder: '比如：来自simple-mind-map',
+    addFooterTextPlaceholder: '比如：来自MindMaster思维导图大师',
     desc: '说明',
     options: '选项',
     isFitBg: '是否显示完整背景图片（使用了背景图片时生效）',

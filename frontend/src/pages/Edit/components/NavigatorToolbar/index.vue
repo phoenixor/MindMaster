@@ -90,6 +90,7 @@
 </template>
 
 <script setup>
+/** 右下角工具条 */
 import { ref, onMounted } from "vue";
 import appStore from "@/stores";
 import Scale from "./Scale.vue";

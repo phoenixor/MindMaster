@@ -1,23 +1,16 @@
 <template>
   <div class="bar-container">
-    <ToolBase
-      v-for="item in btnList"
-      :key="item.name"
-      :icon="item.icon"
-      :name="item.name"
-      :label="item.label"
-      :is-disabled="disabledConditions[item.name]"
-      :is-active="item.name === 'painter' ? isInPainter : false"
-      @tool-click="(name) => (name === 'painter' ? (isInPainter = !isInPainter) : '')"
-    />
+    <ToolBase v-for="item in btnList" :key="item.name" :icon="item.icon" :name="item.name" :label="item.label"
+      :isDisabled="disabledConditions[item.name]" :isActive="item.name === 'painter' ? isInPainter : false"
+      @tool-click="(name) => (name === 'painter' ? (isInPainter = !isInPainter) : '')" />
   </div>
 </template>
 
 <script setup>
-import ToolBase from './comps/ToolBase.vue'
-import { useToolbarConfig } from './config.js'
+import ToolBase from './ToolBase.vue'
+import useToolbarConfig from './useToolbar.js'
 
-defineProps({
+const { btnList } = defineProps({
   btnList: {
     type: Array,
     default: [],
@@ -25,6 +18,7 @@ defineProps({
 })
 
 const {
+  // 状态
   activeNodes,
   backEnd,
   forwardEnd,
@@ -33,12 +27,16 @@ const {
   hasGeneralization,
   isReadonly,
   disabledConditions,
+
+  // 方法
+  handleToolClick,
   showNodeIconSidebar,
   showFormulaSidebar,
   selectAttachmentFile,
   onSetAnnotation,
   aiCreate,
-} = useToolbarConfig()
+  setEventHandler,
+} = useToolbarConfig(btnList)
 </script>
 
 <style lang="less" scoped>

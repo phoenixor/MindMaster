@@ -1,11 +1,6 @@
 <template>
-  <t-button
-    :class="{ active: !isDisabled && isActive }"
-    shape="square"
-    variant="text"
-    :disabled="isDisabled"
-    @click="handleClick"
-  >
+  <t-button :class="{ active: !isDisabled && isActive }" shape="square" variant="text" :disabled="isDisabled"
+    @click="handleClick">
     <div class="btn-content">
       <component :is="icon" size="20px" :stroke-width="1.5" />
       <span>{{ label }}</span>
@@ -23,9 +18,10 @@ const { name } = defineProps({
     type: String,
     default: '工具英文名',
   },
+  // 按钮显示中文名
   label: {
     type: String,
-    default: '工具中文名',
+    required: true,
   },
   isDisabled: {
     type: Boolean,
@@ -49,14 +45,19 @@ const handleClick = () => {
   min-width: 50px;
   width: auto;
   padding: 0 5px;
-  border: 1px solid transparent; /* 默认透明边框，防止hover时布局跳动 */
-  transition: border-color 0.2s ease; /* 添加过渡效果 */
+  // 默认透明边框，防止hover时布局跳动
+  border: 1px solid transparent;
+  // 过渡效果
+  transition: border-color 0.2s ease;
 
-  // &:hover:not(:disabled) {
-  //   border-color: var(--td-border-level-1-color, #e7e7e7); /* hover时显示边框 */
-  // }
+  // 非禁用时的hover效果
+  &:hover:not(.t-is-disabled) {
+    background-color: #d0d0d0;
+    // border-color: #e0e0e0;
+  }
+
   &.active {
-    background-color: var(--td-bg-color-container-active);
+    background-color: #d0d0d0;
     border-color: #d0d0d0;
   }
 

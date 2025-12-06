@@ -14,7 +14,8 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, onUnmounted, nextTick } from 'vue'
+/** 导航容器，小地图 */
+import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import emitter from '@/utils/eventBus';
 
 const { mindMap } = defineProps({
