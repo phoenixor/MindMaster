@@ -1,3 +1,2 @@
-import mitt from 'mitt'
-const emitter = mitt()
-export default emitter
+import EventEmitter from "eventemitter3";
+export default new EventEmitter();

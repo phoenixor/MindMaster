@@ -121,7 +121,6 @@ const onCurrentChange = (index, pageInfo) => {
   console.log("onCurrentChange", index, pageInfo);
 };
 const onJump = (index, total) => {
-  //TODO 这里接收不到total很奇怪，Demonstrate.js里emit的时候传了的
   curStepIndex.value = index;
   totalStep.value = total;
 };

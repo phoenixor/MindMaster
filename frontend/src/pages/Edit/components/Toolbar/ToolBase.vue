@@ -1,15 +1,29 @@
 <template>
-  <t-button :class="{ active: !isDisabled && isActive }" shape="square" variant="text" :disabled="isDisabled"
-    @click="handleClick">
-    <div class="btn-content">
-      <component :is="icon" size="20px" :stroke-width="1.5" />
-      <span>{{ label }}</span>
-    </div>
-  </t-button>
+  <t-tooltip :content="tip" placement="bottom">
+    <t-button :class="{ active: !isDisabled && isActive }" shape="square" variant="text" :disabled="isDisabled"
+      @click="handleClick">
+      <div class="btn-content">
+        <component :is="icon" size="20px" :stroke-width="1.5" />
+        <span>{{ label }}</span>
+      </div>
+    </t-button>
+  </t-tooltip>
 </template>
 
 <script setup>
-const { name } = defineProps({
+defineProps({
+  tip: {
+    type: String,
+  },
+  isDisabled: {
+    type: Boolean,
+    default: false,
+  },
+  // 激活状态（格式刷按钮有点击保持选中状态）
+  isActive: {
+    type: Boolean,
+    default: false,
+  },
   icon: {
     type: Object,
     default: null,
@@ -22,15 +36,6 @@ const { name } = defineProps({
   label: {
     type: String,
     required: true,
-  },
-  isDisabled: {
-    type: Boolean,
-    default: false,
-  },
-  // 激活状态（格式刷按钮有点击保持选中状态）
-  isActive: {
-    type: Boolean,
-    default: false,
   },
   handleClick: {
     type: Function,

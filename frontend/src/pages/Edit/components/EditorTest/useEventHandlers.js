@@ -8,9 +8,10 @@ import { ref } from "vue";
 /**
  * 处理事件绑定与解绑
  * @param {Ref<object>} mindMap
+ * @param {Function} manualSave 手动保存函数
  * @returns
  */
-export default function useEventHandlers(mindMap) {
+export default function useEventHandlers(mindMap, manualSave) {
   const enableShowLoading = ref(true);
   /** 执行命令，每执行一个命令就会在历史堆栈里添加一条记录用于回退或前进 */
   const execCommand = (...args) => {

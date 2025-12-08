@@ -32,7 +32,7 @@ import { t } from "@/locales";
  * 工具栏相关信息hooks
  * 封装工具栏按钮的状态管理、事件处理和禁用条件逻辑
  */
-export default function useToolbar(btnList) {
+export default function useToolbar() {
   const activeNodes = ref([]);
   const backEnd = ref(true);
   const forwardEnd = ref(true);
@@ -46,21 +46,6 @@ export default function useToolbar(btnList) {
   const isFullDataFile = ref(false);
 
   let fileHandle = null;
-
-  const hasRoot = computed(() => {
-    return activeNodes.value.findIndex((node) => node.isRoot) !== -1;
-  });
-  // 概要
-  const hasGeneralization = computed(() => {
-    return activeNodes.value.findIndex((node) => node.isGeneralization) !== -1;
-  });
-  // 注释
-  const annotationRightHasBtn = computed(() => {
-    const index = btnList.findIndex((item) => {
-      return item === "annotation";
-    });
-    return index !== -1 && index < btnList.length - 1;
-  });
 
   /** 左侧按钮列表 */
   const leftBtnList = computed(() => [
@@ -205,22 +190,55 @@ export default function useToolbar(btnList) {
       name: "saveLocalFile",
       icon: SaveIcon,
       label: "另存为",
+      tip: "保存当前工程文件到本地，以便下次继续编辑",
       handler: saveLocalFile,
     },
     {
       name: "showImport",
       icon: FileImportIcon,
       label: "导入",
+      tip: "从本地导入smm、json、xmind、md格式文件",
       handler: () => emitter.emit("showImport"),
     },
     {
       name: "showExport",
       icon: FileExportIcon,
       label: "导出",
+      tip: "支持导出为图片、xmind、markdown等多种格式",
       handler: () => emitter.emit("showExport"),
     },
   ]);
 
+  const hasRoot = computed(() => {
+    return activeNodes.value.findIndex((node) => node.isRoot) !== -1;
+  });
+  // 概要
+  const hasGeneralization = computed(() => {
+    return activeNodes.value.findIndex((node) => node.isGeneralization) !== -1;
+  });
+
+  const btnList = computed(() => {
+    let res = leftBtnList.value.map((item) => item.name);
+    if (!appStore.localConfig.openNodeRichText) {
+      res = res.filter((item) => {
+        return item !== "formula";
+      });
+    }
+    if (!appStore.localConfig.enableAi) {
+      res = res.filter((item) => {
+        return item !== "ai";
+      });
+    }
+    return res;
+  });
+
+  // 注释
+  const annotationRightHasBtn = computed(() => {
+    const index = btnList.findIndex((item) => {
+      return item === "annotation";
+    });
+    return index !== -1 && index < btnList.length - 1;
+  });
   /** 显示节点图标侧边栏 */
   const showNodeIconSidebar = () => {
     emitter.emit("close_node_icon_toolbar");
@@ -257,7 +275,6 @@ export default function useToolbar(btnList) {
    * @param {number} len - length（当前历史数据数组的长度）
    */
   const onBackForward = (index, len) => {
-    console.log("onBackForward", index, len);
     backEnd.value = index <= 0;
     forwardEnd.value = index >= len - 1;
   };
@@ -316,6 +333,160 @@ export default function useToolbar(btnList) {
     }
   };
 
+  /** 加载本地文件树 */
+  const loadFileTreeNode = async (node, resolve) => {
+    try {
+      let dirHandle;
+      if (node.level === 0) {
+        dirHandle = await window.showDirectoryPicker();
+        rootDirName.value = dirHandle.name;
+      } else {
+        dirHandle = node.data.handle;
+      }
+      const dirList = [];
+      const fileList = [];
+      for await (const [key, value] of dirHandle.entries()) {
+        const isFile = value.kind === "file";
+        if (isFile && !/\.(smm|xmind|md|json)$/.test(value.name)) {
+          continue;
+        }
+        const enableEdit = isFile && /\.smm$/.test(value.name);
+        const data = {
+          id: key,
+          name: value.name,
+          type: value.kind,
+          handle: value,
+          leaf: isFile,
+          enableEdit,
+        };
+        if (isFile) {
+          fileList.push(data);
+        } else {
+          dirList.push(data);
+        }
+      }
+      resolve([...dirList, ...fileList]);
+    } catch (error) {
+      console.error(error);
+      fileTreeVisible.value = false;
+      resolve([]);
+      if (error.toString().includes("aborted")) {
+        return;
+      }
+      MessagePlugin.warning(t("toolbar.notSupportTip"));
+    }
+  };
+  /** 扫描本地文件夹 */
+  const openDirectory = () => {
+    fileTreeVisible.value = false;
+    fileTreeExpand.value = true;
+    rootDirName.value = "";
+    nextTick(() => {
+      fileTreeVisible.value = true;
+    });
+  };
+  /** 编辑本地文件 */
+  const editLocalFile = (data) => {
+    if (data.handle) {
+      fileHandle = data.handle;
+      readFile();
+    }
+  };
+  /** 导入指定文件 */
+  const importLocalFile = async (data) => {
+    try {
+      const file = await data.handle.getFile();
+      ImportRef.value.onChange({
+        raw: file,
+        name: file.name,
+      });
+      ImportRef.value.confirm();
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  /** 打开本地文件 */
+  const openLocalFile = async () => {
+    try {
+      let [_fileHandle] = await window.showOpenFilePicker({
+        types: [
+          {
+            description: "",
+            accept: {
+              "application/json": [".smm"],
+            },
+          },
+        ],
+        excludeAcceptAllOption: true,
+        multiple: false,
+      });
+      if (!_fileHandle) {
+        return;
+      }
+      fileHandle = _fileHandle;
+      if (fileHandle.kind === "directory") {
+        MessagePlugin.warning(t("toolbar.selectFileTip"));
+        return;
+      }
+      readFile();
+    } catch (error) {
+      console.error(error);
+      if (error.toString().includes("aborted")) {
+        return;
+      }
+      MessagePlugin.warning(t("toolbar.notSupportTip"));
+    }
+  };
+  /** 读取本地文件 */
+  const readFile = async () => {
+    let file = await fileHandle.getFile();
+    let fileReader = new FileReader();
+    fileReader.onload = async () => {
+      appStore.setIsHandleLocalFile(true);
+      setData(fileReader.result);
+      NotifyPlugin.closeAll();
+      NotifyPlugin.info({
+        title: t("toolbar.tip"),
+        content: `${t("toolbar.editingLocalFileTipFront")}${
+          file.name
+        }${t("toolbar.editingLocalFileTipEnd")}`,
+        closeBtn: true,
+      });
+    };
+    fileReader.readAsText(file);
+  };
+  /** 渲染读取的数据 */
+  const setData = (str) => {
+    try {
+      let data = JSON.parse(str);
+      if (typeof data !== "object") {
+        throw new Error(t("toolbar.fileContentError"));
+      }
+      if (data.root) {
+        isFullDataFile.value = true;
+      } else {
+        isFullDataFile.value = false;
+        data = {
+          ...exampleData,
+          root: data,
+        };
+      }
+      emitter.emit("setData", data);
+    } catch (error) {
+      console.error(error);
+      MessagePlugin.error(t("toolbar.fileOpenFailed"));
+    }
+  };
+  /** 创建本地文件 */
+  const createNewLocalFile = async () => {
+    await createLocalFile(exampleData);
+  };
+  /** 节点备注双击处理 */
+  const onNodeNoteDblclick = (node, e) => {
+    e.stopPropagation();
+    emitter.emit("showNodeNote", node);
+  };
+
   let timer = null;
   /** 监听本地文件读写 */
   const onWriteLocalFile = (content) => {
@@ -326,11 +497,6 @@ export default function useToolbar(btnList) {
     timer = setTimeout(() => {
       writeLocalFile(content);
     }, 1000);
-  };
-  /** 节点备注双击处理 */
-  const onNodeNoteDblclick = (node, e) => {
-    e.stopPropagation();
-    emitter.emit("showNodeNote", node);
   };
 
   const setEventHandler = () => {
@@ -356,6 +522,7 @@ export default function useToolbar(btnList) {
   return {
     leftBtnList,
     rightBtnList,
+    btnList,
     // 状态
     activeNodes,
     backEnd,

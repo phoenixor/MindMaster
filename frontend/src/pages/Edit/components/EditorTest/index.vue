@@ -1,12 +1,7 @@
 <!-- pages/Edit/Edit.vue -->
 <template>
-  <div
-    class="editContainer"
-    @dragenter.stop.prevent="onDragEnter"
-    @dragleave.stop.prevent
-    @dragover.stop.prevent
-    @drop.stop.prevent
-  >
+  <div class="editContainer" @dragenter.stop.prevent="onDragEnter" @dragleave.stop.prevent @dragover.stop.prevent
+    @drop.stop.prevent>
     <div class="mindMapContainer" id="mindMapContainer" ref="mindMapRef"></div>
 
     <Count v-if="!appStore.localConfig.isZenMode" :mindMap="mindMap" />
@@ -14,13 +9,8 @@
     <NavigatorToolbar v-if="!appStore.localConfig.isZenMode" :mindMap="mindMap" />
 
     <!-- 拖拽遮罩 -->
-    <div
-      class="dragMask"
-      v-if="showDragMask"
-      @dragleave.stop.prevent="onDragLeave"
-      @dragover.stop.prevent
-      @drop.stop.prevent="onDrop"
-    >
+    <div class="dragMask" v-if="showDragMask" @dragleave.stop.prevent="onDragLeave" @dragover.stop.prevent
+      @drop.stop.prevent="onDrop">
       <div class="dragTip">{{ t('edit.dragTip') }}</div>
     </div>
   </div>
@@ -99,7 +89,7 @@ const {
   // handleResize,
   bindEvents,
   unbindEvents,
-} = useEventHandlers(mindMap)
+} = useEventHandlers(mindMap, manualSave)
 
 const init = () => {
   try {

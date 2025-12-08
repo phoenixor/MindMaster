@@ -57,3 +57,11 @@ MindMaster（思维导图大师）是一款轻量级、高性能的 Web 思维�
 ## 📦 快速开始
 
 ### 1. 克隆项目
+
+## ❓ 一些问题的说明
+
+### Q：为什么事件总线不使用 Vue3 推荐的 mitt？
+
+A：一开始确实使用了 mitt，但在实际使用中发现当事件回调参数超过两个时，只能接收到第一个参数。经过研究发现，mitt 的实现机制与 eventemitter3 不同， mitt 触发事件时需要将多个参数包装成一个对象传递，且只能接收一个回调参数。
+
+为了解决这个问题并保持与 [wanglin2/mind-map](https://github.com/wanglin2/mind-map) 一致的使用体验，最终选择使用 eventemitter3 替代 mitt。
