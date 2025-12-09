@@ -1,4 +1,4 @@
-import t from "@/hooks/useTranslation";
+import { t } from "@/locales";
 import appStore from "@/stores";
 import emitter from "@/utils/eventBus";
 import { hideLoading, showLoading } from "@/utils/loading";

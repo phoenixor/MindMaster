@@ -11,18 +11,15 @@
     <!-- 拖拽遮罩 -->
     <div class="dragMask" v-if="showDragMask" @dragleave.stop.prevent="onDragLeave" @dragover.stop.prevent
       @drop.stop.prevent="onDrop">
-      <div class="dragTip">{{ t('edit.dragTip') }}</div>
+      <div class="dragTip">{{ $t('edit.dragTip') }}</div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
-import { useRoute } from 'vue-router'
 import appStore from '@/stores'
-import emitter from '@/utils/eventBus'
-import useTranslation from '@/hooks/useTranslation'
-import { showLoading, hideLoading } from '@/utils/loading'
+import { showLoading } from '@/utils/loading'
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 
 // 导入所有UI组件
 import Count from '../Count/index.vue'
@@ -54,13 +51,11 @@ import NavigatorToolbar from '../NavigatorToolbar/index.vue'
 // import AiCreate from './components/AiCreate.vue'
 // import AiChat from './components/AiChat.vue'
 
-import useMindMap from './useMindMap'
-import usePlugins from './usePlugins'
 import useDragImport from './useDragImport'
 import useEventHandlers from './useEventHandlers'
+import useMindMap from './useMindMap'
+import usePlugins from './usePlugins'
 
-const t = useTranslation()
-const route = useRoute()
 const mindMapRef = ref(null)
 
 const {

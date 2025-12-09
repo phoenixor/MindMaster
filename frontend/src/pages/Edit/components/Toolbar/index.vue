@@ -1,19 +1,20 @@
 <template>
   <div class="toolbarContainer">
     <div class="toolbar" ref="toolbarRef">
+      <!-- 左侧工具组 -->
       <div class="toolbarBlock">
-        <!-- <ToolBtnsBar :btn-list="leftBtnList" /> -->
         <ToolBase v-for="item in leftBtnList" :key="item.name" :icon="item.icon" :name="item.name" :label="item.label"
           :isDisabled="item.disabled" :isActive="item.name === 'painter' ? isInPainter : false"
           :handleClick="item.handler" />
       </div>
-
+      <!-- 右侧工具组 -->
       <div class="toolbarBlock">
-        <!-- <ToolBtnsBar :btn-list="leftBtnList.slice(0, 6)" /> -->
         <ToolBase v-for="item in rightBtnList" :key="item.name" :icon="item.icon" :name="item.name" :label="item.label"
           :tip="item.tip" :handleClick="item.handler" />
       </div>
     </div>
+    <!-- 工具相关子组件 -->
+    <ImportFile />
   </div>
 </template>
 
@@ -29,6 +30,8 @@ import { computed, onBeforeUnmount, onMounted, ref, watch, nextTick } from 'vue'
 import ToolBtnsBar from './ToolBtnsBar.vue'
 import ToolBase from './ToolBase.vue'
 import useToolbar from './useToolbar.js'
+
+import ImportFile from '../ImportFile/index.vue'
 
 const toolbarRef = ref(null)
 
@@ -139,34 +142,29 @@ onBeforeUnmount(() => {
   .toolbar {
     position: fixed;
     left: 50%;
-    transform: translateX(-50%);
     top: 20px;
+    transform: translateX(-50%);
     width: max-content;
     display: flex;
-    font-size: 12px;
     font-family:
       PingFangSC-Regular,
       PingFang SC;
-    font-weight: 400;
     color: rgba(26, 26, 26, 0.8);
     z-index: 2;
-
     .toolbarBlock {
       display: flex;
       background-color: #fff;
       gap: 4px; // 图标按钮间隔
-      padding: 10px 20px;
+      padding: 5px 10px;
       border-radius: 6px;
       box-shadow: 0 2px 16px 0 rgba(0, 0, 0, 0.06);
       border: 1px solid rgba(0, 0, 0, 0.06);
       margin-right: 20px;
       flex-shrink: 0;
       position: relative;
-
       &:last-of-type {
         margin-right: 0;
       }
-
       .fileTreeBox {
         position: absolute;
         left: 0;
@@ -182,15 +180,12 @@ onBeforeUnmount(() => {
         border-radius: 5px;
         min-width: 200px;
         box-shadow: 0 2px 16px 0 rgba(0, 0, 0, 0.06);
-
         &.expand {
           height: 300px;
-
           .fileTreeWrap {
             visibility: visible;
           }
         }
-
         .fileTreeToolbar {
           width: 100%;
           height: 30px;
@@ -212,7 +207,6 @@ onBeforeUnmount(() => {
             }
           }
         }
-
         .fileTreeWrap {
           width: 100%;
           height: 100%;
@@ -250,54 +244,6 @@ onBeforeUnmount(() => {
             }
           }
         }
-      }
-    }
-
-    .toolbarBtn {
-      display: flex;
-      justify-content: center;
-      flex-direction: column;
-      cursor: pointer;
-      margin-right: 20px;
-
-      &:last-of-type {
-        margin-right: 0;
-      }
-
-      &:hover {
-        &:not(.disabled) {
-          .icon {
-            background: #f5f5f5;
-          }
-        }
-      }
-
-      &.active {
-        .icon {
-          background: #f5f5f5;
-        }
-      }
-
-      &.disabled {
-        color: #bcbcbc;
-        cursor: not-allowed;
-        pointer-events: none;
-      }
-
-      .icon {
-        display: flex;
-        height: 26px;
-        background: #fff;
-        border-radius: 4px;
-        border: 1px solid #e9e9e9;
-        justify-content: center;
-        flex-direction: column;
-        text-align: center;
-        padding: 0 5px;
-      }
-
-      .text {
-        margin-top: 3px;
       }
     }
   }

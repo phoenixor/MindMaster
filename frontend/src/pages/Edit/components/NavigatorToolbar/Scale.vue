@@ -19,7 +19,7 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
+import { onBeforeUnmount, ref, watch } from 'vue';
 
 const { mindMap } = defineProps({
   mindMap: {

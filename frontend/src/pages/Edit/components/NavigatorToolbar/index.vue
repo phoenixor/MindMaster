@@ -19,14 +19,14 @@
       />
     </div>
     <!-- 搜索内容 -->
-    <div class="item">
+    <!-- <div class="item">
       <IconBtn
         name="showSearch"
         :content="$t('navigatorToolbar.showSearch')"
         :icon="SearchIcon"
         :handleClick="handleIconClick"
       />
-    </div>
+    </div> -->
     <!-- 左右键功能切换 -->
     <div class="item">
       <MouseAction :mindMap="mindMap" />

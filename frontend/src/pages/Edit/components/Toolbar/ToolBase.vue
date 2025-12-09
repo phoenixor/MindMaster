@@ -1,17 +1,19 @@
 <template>
   <t-tooltip :content="tip" placement="bottom">
-    <t-button :class="{ active: !isDisabled && isActive }" shape="square" variant="text" :disabled="isDisabled"
-      @click="handleClick">
+    <t-button :class="{ active: !isDisabled && isActive }" shape="square" variant="text" size="small"
+      :disabled="isDisabled" @click="handleClick">
       <div class="btn-content">
-        <component :is="icon" size="20px" :stroke-width="1.5" />
-        <span>{{ label }}</span>
+        <component :is="icon" size="20px" :stroke-width="1.5" :stroke-color="myColor" />
+        <span :style="{ color: myColor }">{{ label }}</span>
       </div>
     </t-button>
   </t-tooltip>
 </template>
 
 <script setup>
-defineProps({
+import { computed } from 'vue';
+
+const { isDisabled, label } = defineProps({
   tip: {
     type: String,
   },
@@ -28,9 +30,10 @@ defineProps({
     type: Object,
     default: null,
   },
+  // 唯一键名
   name: {
     type: String,
-    default: '工具英文名',
+    required: true,
   },
   // 按钮显示中文名
   label: {
@@ -42,6 +45,19 @@ defineProps({
     required: true,
   },
 })
+
+const myColor = computed(() => {
+  // 如果禁用，使用默认颜色
+  if (isDisabled) {
+    return '';
+  }
+  // 如果是AI图标且未禁用，使用红色
+  if (label === 'AI') {
+    return '#FF4D4F';
+  }
+  // 其他情况使用黑色
+  return '#000';
+});
 </script>
 
 <style lang="less" scoped>
@@ -71,6 +87,7 @@ defineProps({
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    gap: 2px;
   }
 }
 </style>
