@@ -5,6 +5,7 @@
       :header="$t('import.title')"
       :visible="dialogVisible"
       :width="500"
+      :closeBtn="false"
       destroyOnClose
       @close="cancel"
     >
@@ -20,8 +21,7 @@
         :autoUpload="false"
         theme="file"
         :onChange="onChange"
-      >
-      </t-upload>
+      />
       <template #footer>
         <t-button
           variant="outline"
@@ -140,25 +140,14 @@ const handleFileURL = async () => {
 
 /** 已上传文件列表发生变化时触发 */
 const onChange = (files) => {
-  console.log("onChange", files);
-  if (files.length === 0) return;
-  if (!getRegexp().test(files[0].name)) {
+  if (files.length > 0 && !getRegexp().test(files[0].name)) {
     MessagePlugin.error(
       t("import.pleaseSelect") + supportFileStr.value + t("import.file")
     );
     fileList.value = [];
   } else {
-    // 将原始文件对象转换为TDesign UploadFile格式
-    // const uploadFile = {
-    //   name: file[0].name,
-    //   lastModified: file[0].lastModified,
-    //   size: file[0].size,
-    //   type: file[0].type,
-    //   percent: 0,
-    //   status: "waiting",
-    //   raw: file[0].raw,
-    // };
-    fileList.value.push(files[0]);
+    // 如果做删除已选择文件的操作，这里有清空的作用
+    fileList.value = files;
   }
 };
 
@@ -181,7 +170,7 @@ const confirm = () => {
   } else if (/\.md$/.test(file.name)) {
     handleMd(file);
   }
-  // cancel();
+  cancel();
   appStore.setActiveSidebar(null);
 };
 
