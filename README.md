@@ -2,6 +2,8 @@
 
 一个基于 Vue3 + FastAPI 的现代化在线思维导图应用，支持实时保存（全部在浏览器本地更安全）、导出多种格式和节点级的操作等，图谱支持逻辑结构图（向左、向右逻辑结构图）、思维导图、组织结构图、目录组织图、时间轴（横向、竖向）、鱼骨图等结构。
 
+github同步更新：<https://github.com/phoenixor/MindMaster>
+
 ## ⚠️ 开源声明
 
 请严格遵循 [MIT](./LICENSE) 开源协议
@@ -17,11 +19,18 @@
 - **思维导图核心库**：[wanglin2/mind-map](https://github.com/wanglin2/mind-map)
 - **后端框架**：Python 3.11+，FastAPI
 
-## 😄 静态界面展示
+## 😄 界面预览
 
-![index1](assets/index1.jpg)
-![index2](assets/index2.jpg)
-![edit](assets/edit.jpg)
+<table>
+  <tr>
+    <td><img src="assets/index1.jpg" alt="界面预览1" width="400"/></td>
+    <td><img src="assets/index2.jpg" alt="界面预览2" width="400"/></td>
+  </tr>
+  <tr>
+    <td><img src="assets/edit.jpg" alt="编辑界面" width="400"/></td>
+    <td><img src="assets/export.jpg" alt="导出界面" width="400"/></td>
+  </tr>
+</table>
 
 ## 📦 快速开始
 
@@ -59,14 +68,16 @@ pip install -r requirements.txt
 python main.py
 ```
 
-项目首页：http://localhost:8000
+项目首页：<http://localhost:8000>
 
-fastapi文档：http://localhost:8000/docs
+前端在线演示地址（国内访问可能很慢）：<https://mindmaster-b3y.pages.dev/>
 
 ## 💓 支持开发者
+
 如果这个项目对你有帮助，欢迎扫码打赏，你的支持是我持续维护的动力～
 
 ### 微信赞赏
+
 <img src="assets/wechat_pay.png" width="300" height="300" alt="微信收款码">
 
 ## ❓ 一些问题的说明

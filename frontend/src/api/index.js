@@ -9,7 +9,6 @@ const MINDMASTER_CONFIG = "MINDMASTER_CONFIG";
 // const MINDMASTER_LANG = 'MINDMASTER_LANG'
 const MINDMASTER_LOCAL_CONFIG = "MINDMASTER_LOCAL_CONFIG";
 
-// 使用VueUse的useLocalStorage
 const dataStorage = useLocalStorage(MINDMASTER_DATA, null);
 // const langStorage = useLocalStorage(MINDMASTER_LANG, 'zh')
 const localConfigStorage = useLocalStorage(MINDMASTER_LOCAL_CONFIG, null);
