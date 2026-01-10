@@ -3,12 +3,16 @@ import imgLoadFailSvg from "@/assets/img/imgLoadFailed.svg";
 import exampleData from "@/config/exampleData";
 import icon from "@/config/icon";
 import { useAppStore } from "@/stores";
+import { useAuthStore } from "@/stores/auth";
+import { useFileStore } from "@/stores/files";
 import emitter from "@/utils/eventBus";
 import handleClipboardText from "@/utils/handleClipboardText";
 import MindMap from "simple-mind-map";
-import { DialogPlugin, MessagePlugin } from "tdesign-vue-next";
+import { DialogPlugin, MessagePlugin, NotifyPlugin } from "tdesign-vue-next";
 import { ref } from "vue";
 import { useRoute } from "vue-router";
+import { getFile, updateFileData } from "@/api/files";
+import { queueFileSave } from "@/utils/fileSync";
 
 // 注册插件
 import Themes from "simple-mind-map-plugin-themes";
@@ -63,11 +67,16 @@ Themes.init(MindMap);
  */
 export default function useMindMap(mindMapRef) {
   const appStore = useAppStore();
+  const authStore = useAuthStore();
+  const fileStore = useFileStore();
   const route = useRoute();
   const mindMap = ref(null);
   const mindMapData = ref(null);
   const mindMapConfig = ref({});
   const storeConfigTimer = ref(null);
+  const idleSaveTimer = ref(null);
+  let isDirty = false;
+  const IDLE_SAVE_MS = 20000;
 
   /** url中是否存在要打开的文件 */
   const hasFileURL = () => {
@@ -254,14 +263,48 @@ export default function useMindMap(mindMapRef) {
   };
 
   /** 加载数据和配置 */
-  const loadDataConfig = () => {
-    mindMapData.value = getData();
+  const loadDataConfig = async () => {
+    const fileIdFromRoute = route.query.fileId;
+    let targetFileId = fileIdFromRoute || fileStore.currentFileId;
+    if (authStore.isLoggedIn && targetFileId) {
+      try {
+        const fileDetail = await getFile(targetFileId);
+        fileStore.setCurrentFileId(fileDetail.id);
+        mindMapData.value = fileDetail.data;
+      } catch (error) {
+        console.error(error);
+        mindMapData.value = getData();
+      }
+    } else {
+      mindMapData.value = getData();
+    }
     mindMapConfig.value = getConfig() || {};
   };
   /** 监听数据变化，存储数据 */
   const bindSaveEvent = () => {
+    const markDirty = () => {
+      isDirty = true;
+      clearTimeout(idleSaveTimer.value);
+      idleSaveTimer.value = setTimeout(async () => {
+        if (!isDirty || !mindMap.value) return;
+        if (authStore.isLoggedIn && fileStore.currentFileId) {
+          try {
+            await updateFileData(fileStore.currentFileId, {
+              data: mindMap.value.getData(true),
+            });
+            isDirty = false;
+          } catch (error) {
+            MessagePlugin.error(error.message || "自动保存失败");
+          }
+        }
+      }, IDLE_SAVE_MS);
+    };
     emitter.on("data_change", (data) => {
       storeData({ root: data });
+      markDirty();
+      if (authStore.isLoggedIn && fileStore.currentFileId) {
+        queueFileSave(fileStore.currentFileId, mindMap.value.getData(true));
+      }
     });
     emitter.on("view_data_change", (data) => {
       clearTimeout(storeConfigTimer.value);
@@ -269,6 +312,10 @@ export default function useMindMap(mindMapRef) {
         storeData({
           view: data,
         });
+        markDirty();
+        if (authStore.isLoggedIn && fileStore.currentFileId) {
+          queueFileSave(fileStore.currentFileId, mindMap.value.getData(true));
+        }
       }, 300);
     });
   };
@@ -276,6 +323,23 @@ export default function useMindMap(mindMapRef) {
   /** 手动保存数据 */
   const manualSave = () => {
     storeData(mindMap.value.getData(true));
+    isDirty = false;
+    if (authStore.isLoggedIn && fileStore.currentFileId) {
+      updateFileData(fileStore.currentFileId, {
+        data: mindMap.value.getData(true),
+      })
+        .then(() => {
+          NotifyPlugin.success({
+            title: "保存成功",
+            content: "已同步到云端",
+          });
+        })
+        .catch((error) => {
+          MessagePlugin.error(error.message || "保存失败");
+        });
+    } else {
+      MessagePlugin.warning("请先从文件列表创建或打开文件");
+    }
   };
 
   /** 整体重新渲染，会清空画布，节点也会重新创建，性能不好，慎重使用 */

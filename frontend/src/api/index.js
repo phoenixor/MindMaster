@@ -8,6 +8,7 @@ const MINDMASTER_DATA = "MINDMASTER_DATA";
 const MINDMASTER_CONFIG = "MINDMASTER_CONFIG";
 // const MINDMASTER_LANG = 'MINDMASTER_LANG'
 const MINDMASTER_LOCAL_CONFIG = "MINDMASTER_LOCAL_CONFIG";
+const MINDMASTER_CLOUD_META = "MINDMASTER_CLOUD_META";
 
 const dataStorage = useLocalStorage(MINDMASTER_DATA, null);
 // const langStorage = useLocalStorage(MINDMASTER_LANG, 'zh')
@@ -48,6 +49,7 @@ export const storeData = (data) => {
     };
     emitter.emit("write_local_file", originData);
     dataStorage.value = JSON.stringify(originData);
+    updateLocalUpdatedAt();
   } catch (error) {
     console.error(error);
     if ("exceeded") {
@@ -122,4 +124,39 @@ export const getLocalConfig = () => {
     return JSON.parse(config);
   }
   return null;
+};
+
+export const replaceData = (data) => {
+  try {
+    emitter.emit("write_local_file", data);
+    dataStorage.value = JSON.stringify(data);
+    updateLocalUpdatedAt();
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+export const getCloudMeta = () => {
+  const meta = localStorage.getItem(MINDMASTER_CLOUD_META);
+  if (meta) {
+    try {
+      return JSON.parse(meta);
+    } catch (error) {
+      return null;
+    }
+  }
+  return null;
+};
+
+export const setCloudMeta = (meta) => {
+  localStorage.setItem(MINDMASTER_CLOUD_META, JSON.stringify(meta));
+};
+
+export const updateLocalUpdatedAt = () => {
+  const now = Date.now();
+  const meta = getCloudMeta() || {};
+  setCloudMeta({
+    ...meta,
+    local_updated_at: now,
+  });
 };
