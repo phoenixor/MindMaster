@@ -65,6 +65,7 @@ git clone https://gitee.com/phoenixor/mind-master.git
 ```bash
 cd mind-master/frontend
 npm install
+pnpm run build
 ```
 
 2️⃣ 后端

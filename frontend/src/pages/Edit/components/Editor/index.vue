@@ -115,10 +115,10 @@
     }
   };
 
-  onMounted(() => {
+  onMounted(async () => {
     showLoading();
 
-    loadDataConfig();
+    await loadDataConfig();
     init();
     usePlugins(mindMap);
     bindEvents();

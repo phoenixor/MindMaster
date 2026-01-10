@@ -1,4 +1,6 @@
 import { useAppStore } from "@/stores";
+import { useAuthStore } from "@/stores/auth";
+import { useFileStore } from "@/stores/files";
 import emitter from "@/utils/eventBus.js";
 import { computed, onMounted, onUnmounted, ref } from "vue";
 import {
@@ -24,12 +26,15 @@ import {
   SaveIcon,
   FileImportIcon,
   FileExportIcon,
+  UploadIcon,
+  DownloadIcon,
 } from "tdesign-icons-vue-next";
 import { getData } from "@/api";
-import { LoadingPlugin } from "tdesign-vue-next";
+import { LoadingPlugin, NotifyPlugin, MessagePlugin } from "tdesign-vue-next";
 import { t } from "@/locales";
 import exampleData from "@/config/exampleData";
 import { useRouter } from "vue-router";
+import { getFile, updateFileData } from "@/api/files";
 
 /**
  * 工具栏相关信息hooks
@@ -37,6 +42,8 @@ import { useRouter } from "vue-router";
  */
 export default function useToolbar() {
   const appStore = useAppStore();
+  const authStore = useAuthStore();
+  const fileStore = useFileStore();
   const router = useRouter();
   const activeNodes = ref([]);
   const backEnd = ref(true);
@@ -197,6 +204,65 @@ export default function useToolbar() {
 
   /** 右侧按钮列表 */
   const rightBtnList = computed(() => [
+    {
+      name: "cloudPush",
+      icon: UploadIcon,
+      label: "云端同步",
+      tip: "将当前数据同步到云端",
+      handler: async () => {
+        if (!authStore.isLoggedIn) {
+          emitter.emit("open_auth_dialog");
+          return;
+        }
+        if (!fileStore.currentFileId) {
+          MessagePlugin.warning("请先从文件列表创建或打开文件");
+          return;
+        }
+        try {
+          await updateFileData(fileStore.currentFileId, {
+            data: getData(),
+          });
+          NotifyPlugin.success({
+            title: "云端同步",
+            content: "同步成功",
+          });
+        } catch (error) {
+          NotifyPlugin.error({
+            title: "云端同步失败",
+            content: error.message || "请稍后重试",
+          });
+        }
+      },
+    },
+    {
+      name: "cloudPull",
+      icon: DownloadIcon,
+      label: "云端拉取",
+      tip: "从云端拉取最新数据",
+      handler: async () => {
+        if (!authStore.isLoggedIn) {
+          emitter.emit("open_auth_dialog");
+          return;
+        }
+        if (!fileStore.currentFileId) {
+          MessagePlugin.warning("请先从文件列表创建或打开文件");
+          return;
+        }
+        try {
+          const res = await getFile(fileStore.currentFileId);
+          emitter.emit("setData", res.data);
+          NotifyPlugin.success({
+            title: "云端同步",
+            content: "已拉取云端数据",
+          });
+        } catch (error) {
+          NotifyPlugin.error({
+            title: "云端同步失败",
+            content: error.message || "请稍后重试",
+          });
+        }
+      },
+    },
     {
       name: "saveLocalFile",
       icon: SaveIcon,
