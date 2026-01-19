@@ -44,6 +44,14 @@
         :handleClick="handleIconClick"
       />
     </div>
+    <div class="item">
+      <IconBtn
+        name="style"
+        :content="$t('baseStyle.title')"
+        :icon="BrushIcon"
+        :handleClick="handleIconClick"
+      />
+    </div>
     <!-- 只读/编辑模式切换 -->
     <div class="item">
       <IconBtn
@@ -87,6 +95,7 @@
       版本号：{{ appConfig.appVer }} © {{ appConfig.author }}
     </div>
   </div>
+  <StyleDialog v-model:visible="styleVisible" :mindMap="mindMap" />
 </template>
 
 <script setup>
@@ -97,6 +106,7 @@
   import { appConfig } from "@/config";
   import MouseAction from "./MouseAction.vue";
   import Demonstrate from "./Demonstrate.vue";
+  import StyleDialog from "./StyleDialog.vue";
   // import pkg from "simple-mind-map/package.json";
   import {
     FocusIcon,
@@ -108,6 +118,7 @@
     BrowseIcon,
     Fullscreen2Icon,
     Fullscreen1Icon,
+    BrushIcon,
   } from "tdesign-icons-vue-next";
   import IconBtn from "./IconBtn.vue";
   import emitter from "@/utils/eventBus";
@@ -121,6 +132,7 @@
 
   const appStore = useAppStore();
   const openMiniMap = ref(false);
+  const styleVisible = ref(false);
 
   const iconBtnActions = {
     backToRoot: () => {
@@ -135,6 +147,9 @@
     toggleMiniMap() {
       openMiniMap.value = !openMiniMap.value;
       emitter.emit("toggle_mini_map", openMiniMap.value);
+    },
+    style() {
+      styleVisible.value = true;
     },
     readonlyChange() {
       appStore.setIsReadonly(!appStore.isReadonly);

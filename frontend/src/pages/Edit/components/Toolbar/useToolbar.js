@@ -8,6 +8,7 @@ import {
   RollbackIcon,
   RollfrontIcon,
   BrushIcon,
+  AddIcon,
   TreeSquareDotVerticalIcon,
   GitMergeIcon,
   DeleteIcon,
@@ -88,6 +89,22 @@ export default function useToolbar() {
       disabled: activeNodes.value.length <= 0 || hasGeneralization.value,
       active: isInPainter.value,
       handler: () => emitter.emit("startPainter"),
+    },
+    {
+      name: "freeNode",
+      icon: AddIcon,
+      label: "自由节点",
+      disabled: appStore.isReadonly,
+      handler: () => emitter.emit("create_free_node"),
+    },
+    {
+      name: "nodeStyle",
+      icon: PenIcon,
+      label: "节点样式",
+      handler: () =>
+        appStore.setActiveSidebar(
+          appStore.activeSidebar === "nodeStyle" ? "" : "nodeStyle"
+        ),
     },
     {
       name: "siblingNode",

@@ -71,12 +71,38 @@ export default function useMindMap(mindMapRef) {
   const fileStore = useFileStore();
   const route = useRoute();
   const mindMap = ref(null);
+  const activeNodes = ref([]);
   const mindMapData = ref(null);
   const mindMapConfig = ref({});
   const storeConfigTimer = ref(null);
   const idleSaveTimer = ref(null);
   let isDirty = false;
   const IDLE_SAVE_MS = 20000;
+
+  const onNodeActive = (...args) => {
+    const list = Array.isArray(args[1])
+      ? args[1]
+      : Array.isArray(args[0])
+      ? args[0]
+      : [];
+    activeNodes.value = list.filter(Boolean);
+  };
+
+  const toggleBoldStyle = () => {
+    if (!activeNodes.value.length || !mindMap.value) {
+      return;
+    }
+    const shouldBold = activeNodes.value.some((node) => {
+      const weight = node.getStyle ? node.getStyle("fontWeight", false) : "";
+      return weight !== "bold";
+    });
+    activeNodes.value.forEach((node) => {
+      if (node && node.setStyle) {
+        node.setStyle("fontWeight", shouldBold ? "bold" : "normal");
+      }
+    });
+    emitter.emit("node_style_changed");
+  };
 
   /** url中是否存在要打开的文件 */
   const hasFileURL = () => {
@@ -124,6 +150,11 @@ export default function useMindMap(mindMapRef) {
       },
       openRealtimeRenderOnNodeTextEdit: true,
       enableAutoEnterTextEditWhenKeydown: true,
+      beforeDragStart: (nodeList) => {
+        return nodeList.some((node) => {
+          return !node || !node.getData || !node.getData("isFreeNode");
+        });
+      },
       demonstrateConfig: {
         openBlankMode: false,
       },
@@ -218,6 +249,9 @@ export default function useMindMap(mindMapRef) {
     mindMap.value.keyCommand.addShortcut("Control+s", () => {
       manualSave();
     });
+    mindMap.value.keyCommand.addShortcut("Control+b", () => {
+      toggleBoldStyle();
+    });
 
     // mindMap实例事件列表
     // https://wanglin2.github.io/mind-map-docs/api/constructor/constructor-methods.html#on-event-fn
@@ -255,6 +289,7 @@ export default function useMindMap(mindMapRef) {
         emitter.emit(event, ...args);
       });
     });
+    emitter.on("node_active", onNodeActive);
     bindSaveEvent();
     // 处理url中支持格式的文件
     if (fileUrlExists) {
@@ -319,6 +354,7 @@ export default function useMindMap(mindMapRef) {
       }, 300);
     });
   };
+
 
   /** 手动保存数据 */
   const manualSave = () => {

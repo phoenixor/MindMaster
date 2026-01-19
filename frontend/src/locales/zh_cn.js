@@ -122,6 +122,8 @@ export default {
     removeCustomStyles: '一键去除自定义样式',
     removeAllNodeCustomStyles: '一键去除所有节点自定义样式',
     exportNodeToPng: '导出该节点为图片',
+    convertToFreeNode: '转为自由节点',
+    convertToNormalNode: '转为非自由节点',
     copyToClipboard: '复制到剪贴板',
     copyToSmm: 'SMM',
     copyToJson: 'JSON',
@@ -358,6 +360,7 @@ export default {
     exportError: '导出失败',
     dragTip: '在此释放以导入该文件',
     deleteNodeImgTip: '是否确认删除该节点图片？',
+    freeNodeDefaultText: '自由节点',
     autoOpenNodeRichTextTip: '检测到导入了富文本内容，已自动开启富文本模式',
     localStorageExceededTip:
       '你创建的思维导图体积已经超过浏览器允许存储的上限，请立即导出，否则数据将丢失！建议下载客户端进行使用，客户端无大小限制。',

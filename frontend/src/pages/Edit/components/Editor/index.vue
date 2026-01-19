@@ -15,6 +15,8 @@
       v-if="!appStore.localConfig.isZenMode"
       :mindMap="mindMap"
     />
+    <NodeStyleSidebar :mindMap="mindMap" />
+    <Contextmenu v-if="mindMap" :mindMap="mindMap" />
 
     <!-- 拖拽遮罩 -->
     <div
@@ -38,6 +40,8 @@
   import Count from "../Count/index.vue";
   import Navigator from "../Navigator/index.vue";
   import NavigatorToolbar from "../NavigatorToolbar/index.vue";
+  import NodeStyleSidebar from "../NodeStyleSidebar.vue";
+  import Contextmenu from "../Contextmenu.vue";
   // import OutlineSidebar from './components/OutlineSidebar.vue'
   // import Style from './components/Style.vue'
   // import BaseStyle from './components/BaseStyle.vue'
